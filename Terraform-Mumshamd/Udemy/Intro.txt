@@ -1,0 +1,35 @@
+Infrastructure as Code
+=========================
+* Infrastructure as Code (IaC) is the managing and provisioning of infrastructure through code instead of through manual processes. 
+* With IaC, configuration files are created that contain your infrastructure specifications, which makes it easier to edit and distribute configurations.
+* Infrastructure as code (IaC) uses DevOps methodology and versioning with a descriptive model to define and deploy infrastructure, such as networks, 
+virtual machines, load balancers, and connection topologies.
+* With infrastructure as code, we can define infrastructure resources using simple, human readable,high level language.
+* There are several different tools, part of the infrastructure as code, such as ansible, terraform,puppet, cloud formation, packer, salt stack, vagrant, 
+Docker, etc. 
+* IaC tools can  be broadly classified into three types.
+a). Configuration Management :: Ansible, chef, Puppet, Salt Stack fall into these category
+  ->  These are commonly used to install and manage software on existing infrastructure resources such as servers, databases, networking devices, etc.
+  ->  configuration management tools maintain a consistent and a standard structure of code.And this makes it easier to manage and update it as needed.
+  ->  They're also designed to run on multiple remote resources at once.
+  ->  And Ansible playbook or a rule can be checked into a vision control repository.This allows us to reuse and distribute it as needed.
+  ->  However, perhaps the most important feature of a configuration management tool is that they are idempotent.This means that you can run the code 
+  multiple times and every time you run it, it will only make changes that are necessary to bring the environment into a defined steed.
+  -> It would leave anything already in place as it is without us having to write any additional code.
+
+b). Server Templating ::  Docker, Packer, Vagrant
+  ->  These  can be used to create a custom image of a Virtual machine or a container.
+  ->  These images already contain all the required software and dependencies installed on them. And for the most part, this eliminates the need of 
+  installing software after a VM or a container is deployed.
+  ->  They also promote immutable infrastructure, unlike configuration management tools.This means that was the VDM or a container is deployed, It is 
+  designed to remain unchanged if there are changes to be made to the image instead of updating the running instance, like in the case of 
+  configuration management tools such as Ansible,We update the image and then redeploy a new instance using the updated image.
+
+c). Provisioning Tools :: Terraform, Cloud Formation
+  -> These tools are used to provision infrastructure components using a simple declarative code.
+  -> These infrastructure components can range from servers such as virtual machines, databases, VPCs, subnets, security groups, storage and just about 
+  any service based on the provider we choose.
+  -> While cloud formation is specifically used to deploy services in AWS while terraform as vendor agnostic and support provider plugins for 
+  almost all major cloud providers.
+  
+  
