@@ -1,0 +1,200 @@
+HCL (HashiCorp COnfiguration Language) Basics
+===============================================
+HCL file consists of  blocks and arguements
+
+A block is defined within curly braces, and it contains a set of arguments in key value pair format representing the configuration data.
+
+But what is a block and what arguments does it contain??
+In its simplest form, a block in Terraform contains information about the infrastructure platform and a set of resources within that platform that 
+we want to create.
+
+For example, let us consider a simple task. We want to create a file in the local system where Terraform is installed.To do this first, let us create 
+a directory called terraform-local-file under /root directory
+  $ mkdir /root/terraform-local-file 
+  $ cd /root/terraform-local-file
+
+Now create a configurtaion file local.tf as shown below :
+resource "local_file" "pet" {
+  filename = "/root/pets.txt"
+  content = "We love pets!"
+}
+
+
+The first element in this file is a block of this can be identified by the curly braces.
+
+The type of block we see here is called the resource block, and this can be identified by the keyword called resource in the beginning of the block.
+
+Following the keyword called resource, we have the declaration of the "resource type"  that we want to create.This is a fixed value and depends on 
+the provider where we want to create the resource.In this case, we have the resource type called "local_file"
+
+A resource Type provides two bits of information. First is the "provider", which is represented by the word before the underscore(_) in  the resource type
+and here we are making use of the local provider.
+And the word, following the underscore, which is file in this case, represents the type of resource.
+
+    Resource type = local_file  ; local = provider and file = type of resource
+
+The next and final declaration in this resource block is the "resource name".This is the logical name used to identify the resource, and it can be 
+named anything.But in this case, we have called it "pet"  as the file we are creating contains information about pets.
+  
+  Resource Name = pet ; inside curly braces = arguements
+
+And within this block and inside the curly braces, we defined the arguments for results which are written in key value pair format.These arguments are 
+specific to the type of resource we are creating, which in the case of the local_file.
+
+The first argument is the filename, to this We assigned the absolute path to the file we want to create. In this example, it is set to "/root/pets.txt"
+
+Now we can also add some content to this file by making use of the content argument, to this we have added "We love pets!"
+
+
+The words filename and content are specific to the local file resource we want to create and they cannot be changed.
+In other words, the resource type of local file expects that we provide the argument or file name and content.
+
+Each resource type has specific arguments that they expect 
+
+We now have a complete HCL configuration file that we can use to create a file by the name of pets.txt. This file will be created in this 
+/root directory, and it will contain a single line of data. The resource block that we see here is just one example of the configuration blocks 
+used in HCL. But it is also a mandatory block needed to deploy a resource using TerraForm.
+
+
+
+Here is an example of a resource file created for provisioning and HWC, easy to instance, the resource
+
+type is AWG underscore instance we named the resource the observer.
+
+And the arguments that we have used here is the aimy ID.
+
+And the instance type.
+
+Here is another example of a resource file used to create an IWC S3 bucket.
+
+The resource type in this case is HWC Underscore S3 and a school bucket.
+
+The resource name that we have chosen as data and the arguments that we are provided as the bucket name
+
+and the ACL.
+
+A simple terraformed workflow consists of four steps.
+
+First, write the configuration file.
+
+Next, Randy TerraForm in IT command.
+
+And after that review of the execution plan, using the TerraForm plan command.
+
+Finally, once we already apply the changes using the the reform apply command.
+
+With the configuration file ready, we can now create the file resource using the terraformed commands
+
+as follows.
+
+First, Randi, to reform any command.
+
+This command will check the configuration file and initialize the working dickory containing the dot
+
+D.F. file.
+
+One of the first things that this man does is to understand that we are making use of the local provider
+
+based on the resource type declared and the resource block.
+
+It will then download the plugin to be able to work on the resources declared and the dot def file.
+
+From the output of this command, we can see that terraform, and it has installed a plugin called Local.
+
+Next, we are ready to create the resource.
+
+But before we do that, if you want to see the execution plan that will be carried out by telephone,
+
+we can use the command reform plan.
+
+This command will show the actions that will be carried out by TerraForm to create the resource.
+
+Therefore, knows that it has to create resources and this is displayed in the output similar to a deef
+
+command and get.
+
+The output has a plus symbol next to the local file tab resource called Pet.
+
+This includes all the arguments that be specified in the Daudier file for creating the resource.
+
+But you'll also notice that some default or optional arguments, which we did not specifically declare
+
+in the configuration file.
+
+This also displayed on the screen.
+
+The plus symbol implies that the resource will be created.
+
+Now, remember, this step will not create the infrastructure resource yet.
+
+This information is provided for the user to review and ensure that all the actions to be performed
+
+in this execution plan as desired.
+
+After the review, we can create the resource.
+
+And to do this, we will make use of the terraform apply command.
+
+This command will displayed the execution plan once again, and it will then ask the user to confirm
+
+by typing, yes, to proceed.
+
+Once we confirm, it will proceed with the creation of the resource, which in this case is a file.
+
+We can validate that the file was indeed created by running the cat command to view the file.
+
+We can also run the terraformed Shukman within the configuration daltry to see the details of the resource
+
+that we just created.
+
+This command, inspect this file and displays the resource details.
+
+We will learn more about this command and the state in a little lecture.
+
+So we have now created our first resource using TerraForm.
+
+Before we end the section, let us go back and look at the configuration blocks and local data file.
+
+In this example, we use the resource type of local file and learned that the key word before the underscore
+
+here is the provider name called local.
+
+But how do we know that?
+
+How do we know Watrous or Stipe's other than local file are available under the provider call local?
+
+And finally, how do we know what arguments are expected by the local file resource?
+
+Earlier, we mentioned that terraformed supports or 100 providers, including the local provider we
+
+have used in this example.
+
+Other common examples are ways to deploy resources in Amazon, IWC Cloud, Azure, GCB, Ali Cloud,
+
+etc..
+
+Each of these providers have a unique list of resources that can be created on that specific platform.
+
+And each resource can have a number of required are optional arguments that are needed to create that
+
+resource.
+
+And we can create as many resources of easthope as needed.
+
+It is impossible to remember all of these options.
+
+And of course, we don't have to do that.
+
+Reform documentation is extremely comprehensive, and it is the single source of truth that we need
+
+to follow.
+
+If you look at the local provider within the documentation, we can see that it only has one type of
+
+resource called local file.
+
+Under the argument section, we can see that there are several arguments that the resource block accepts,
+
+all of which only one is mandatory.
+
+The finally the rest of the arguments are optional.
