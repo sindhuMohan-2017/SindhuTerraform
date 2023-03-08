@@ -1,0 +1,33 @@
+Installting TerraForm
+=====================
+TerraForm can be downloaded as a single binary or an executable file from the terraformed download section(WWW.terraform.io)
+Installing TerraForm is as simple as downloading this file and copying it to the system path.
+    $ wget https://releases.hashicorp.com/terraform/0.13.0/terraform_0.13.0_linux_amd64.zip
+    $ unzip terraform_0.13.0_linux_amd64.zip
+    $ mv terraform /usr/local/bin
+
+Once installed, we can check the version by running the command 
+   $ terraform version 
+   Terraform v0.13.0
+   
+TerraForm is supported on Windows, Mac and several other Linux based distributions.
+
+As stated earlier, Terraform uses configuration files, which are written in HCL(Hashicorp Configuration Langiuage) to deploy infrastructure resources.
+  HCL – Declarative Language
+aws.tf
+  resource "aws_instance" "webserver" { ami = "ami-0c2f25c1f66a1ff4d" instance_type = "t2.micro"
+  }
+
+These files have a .tf extension and can be created using any text editor such as notepad or notepad++  for windows or command line text editors such as 
+Vim or iMac in Linux, or it could be any ID of your choice.
+
+A resource is an object that Terraform manages. 
+
+It could be a file on a local host or it could be a virtual machine on the cloud, such as an EC2 instance, or it could be services like S3 Buckets, 
+ECS, Dynamo DB tables, I am users or I am groups, rules, policies, etc. Or it could be resources on major cloud providers such as the compute and app 
+engine from GCP ,databaseson Azure ,Azure Active Directory, etc.
+
+There are literally hundreds of resources that can be provisioned across most of the cloud and on premise infrastructure using TerraForm.
+
+
+ 
