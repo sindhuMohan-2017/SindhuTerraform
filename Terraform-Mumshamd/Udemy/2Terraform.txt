@@ -1,0 +1,72 @@
+Terraform
+=========
+-> Terraform is a popular IaC tool, which is specifically useful as an infrastructure provisioning tool.
+-> TerraForm is a free and open source tool, which was developed by Hashi Corp. 
+-> It installed as a single binary, which can be set up very quickly,allowing us to build, manage and destroy infrastructure in a matter of minutes.
+-> One of the biggest advantages of Terraform is its ability to deploy infrastructure across multiple platforms, including private and public cloud, 
+all cloud solutions such as AWS,GCP or Azure, to name a few.
+
+How does the Terraform  manage infrastructure on so many different kinds of platforms??
+-> This is achieved through providers, A Provider helps TerrForm to manage third party platforms through their API.
+-> Providers enable Terraform managed cloud platforms like AWS, GCP or Azure,as well as network infrastructure like Big IP, Cloudflare, DNS, 
+Palo Alto and Infoblox, as well as monitoring and data management tools like Datadog, Grafana , Auth0, Wavefront ,Sumo Logic and Databases like 
+Influx DB, Mongo DB, mySQL, PostgreSQL and VCS like GitHub,Bitbucket or Gitlab.
+-> TerraForm supports hundreds of such providers and as a result can work with almost every infrastructure platform.
+
+-> TerraForm uses HCL, which stands for HashiCorp configuration language, which is a simple declarative language to define the infrastructure 
+resources to be provisioned as blocks of code.
+-> All infrastructure resources can be defined within configuration files that has ".tf" file extension.
+-> The configuration syntax is easy to read and write and pick up for a beginner.
+-> The below sample code is used to provision a new EC2 instance on the AWS cloud.
+  
+  resource "aws_instance" "webserver" {
+  ami           = "ami-0edab43b6fa892279"
+  instance_type = "t2.micro"
+  }
+  resource "aws_s3_bucket" "finance" { bucket = "finanace-21092020" tags ={
+        Description = "Finance and Payroll"
+    }
+  }
+  resource "aws_iam_user" "admin-user" {
+    name = "lucy"
+  tags = {
+  Description = "Team Leader"
+  } }
+
+-> This code is declarative and can be maintained in a Version controlled system, allowing it to be distributed to other teams.
+
+But what does declarative mean?
+The code we defined is the state that we want our infrastructure to be in i.e the desired state. Terraform will take care of what is required to go
+from the current state to the desired state without us having to worry about how to get there.
+
+So how does TerraForm do that?
+Terraform  works in three phases Init, plan and apply. 
+During the "init phase" Terraform initialises the project and identifies the providers to be used for the target environment.
+During the "plan phase" Terraform dratfs a plan to get to the target date, and then in the "apply phase" Terraform makes the necessary changes 
+required on the target environment to bring it to the desired state.
+
+If for some reason the environment was to shift from the desired state, then a subsequent Terraform apply will bring it back to the desired state by 
+only fixing the missing component.
+
+Every object that Terraform manages is called a "resource".A resource can be a computer, and since a database server in the cloud or in a physical 
+server in the on-premise that Terraform manages.
+
+Terraform Manages the lifecycle of resources from its provisioning to configuration to decommissioning.
+
+Terraform records the state of the infrastructure as it is seen in the real world, and based on this,it can determine what actions to take when 
+updating resources for a particular platform.
+
+TerraForm can ensure that the entire infrastructure is always in the defined state at all times.
+
+The state is a blueprint of the infrastructure deployed by TerraForm.
+
+TerraForm can read attributes of existing infrastructure components by configuring data sources.This can be later used for configuring other 
+resources within TerraForm.
+
+TerraForm can also import other resources outside of the TerraForm that were either created manually or by the means of other IaC tools and bring it under 
+its control so that it can manage those resources going forward.
+
+TerraForm cloud & Terraform Enterprise provide additional features that allow simplified collaboration between teams managing infrastructure, 
+improved security and a centralized UI to manage TerraForm deployments.
+
+All these features make TerraForm an excellent enterprise grade infrastructure provisioning tool.
