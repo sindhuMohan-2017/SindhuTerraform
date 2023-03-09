@@ -1,0 +1,54 @@
+After we write a TerraForm configuration file, the first thing to do is to initialize the directory with the TerraForm Init command.
+
+When we run "terraform init" within a directory containing the configuration files, TerraForm downloads and installs plugins for the providers 
+used within the configuration.
+
+These can be plug-ins for cloud providers such as AWS, GCP, Azure, or something as simple as the local provider that we use to create a local file 
+type resource.
+
+TerraForm uses a plugin based architecture to work with hundreds of such infrastructure platforms.
+
+Different providers are distributed by Hashicorp and are publicly available in the TerraForm Registry at the URL 
+https://registry.terraform.io/
+
+There are three tiers of providers.
+
+a) official provider
+  These are owned and maintained by Hashicorp and include the major cloud providers such as AWS, GCP and Azure.
+  The local provider that we have used so far is also an official provider.
+
+b) partner provider
+  A partner provider is owned and maintained by a third party technology company that has gone through a partner provider process with Hashicorp.
+  Some of the examples are the big IP provider from Fine Networks, Heroku, Digital, Ocean, etc..
+
+c) community providers 
+  A community providers are published and maintained by individual contributors of the Hashicorp community.
+
+The TerraForm init command when we run shows the version of the plugin that is being installed.
+
+terraform init is a safe command and it can be run as many times as needed without impacting the actual infrastructure that is deployed.
+
+The plugins are downloaded into a hidden directory called Terraform/plugins in the working directory containing the configuration files.
+
+plugin --> Hashicorp/Local is also known as the source address.
+
+This is an identifier that is used by TerraForm to locate and download the plugin from the registry.
+
+Let's take a closer look at the format of the name. The first part of the name, which in this case is Hashicorp is the organizational namespace.
+This is followed by the type which is the name of the provider, such as local.
+
+Other examples of providers are AWS, Azure, ARM, Google, Random, etc..
+
+The plugin name can also optionally have a hostname in front.The hostname is the name of the registry where the plugin is located.
+
+If omitted, it defaults to registry.terraform.io which is Hashicorp public registry.
+
+Given the fact that the local provider is stored in the public from registry within the Hashicorp namespace, the source address for it can be 
+represented as registry.terraform.io/Hashicorp/local or simply by hashicorp/local by omitting the hostname.
+
+By default, TerraForm installs the latest version of the provider.
+
+Provide plugins, especially the official ones, are constantly updated with newer versions.This is done to bring in new functionality or to add 
+in bug fixes and these can introduce breaking changes to your code.
+
+We can lock down our configuration files to make use of a specific provider version as well.
