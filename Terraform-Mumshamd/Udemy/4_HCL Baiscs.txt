@@ -184,4 +184,65 @@ Earlier, we mentioned that terraforme supports over 100 providers, including the
 Each of these providers have a unique list of resources that can be created on that specific platform.And each resource can have a number of required are optional arguments that are needed to create that resource.And we can create as many resources of ease type as needed.
 
 
+Update or destroy Infrastructure
+=================================
+Update the Infrastructure -Let us add in a final permission argument to obtain the permission of the file.
 
+local.tf 
+resource "local_file" "pet" {
+   filename = "/root/pets.txt"
+   content = "We love pets!"
+   file_permission = "0700"
+}
+
+$ terraform plan
+local_file.pet: Refreshing state...
+[id=5f8fb950ac60f7f23ef968097cda0a1fd3c11bdf]
+---------------------------------------------------------------------- An execution plan has been generated and is shown below.
+Resource actions are indicated with the following symbols:
+-/+ destroy and then create replacement
+Terraform will perform the following actions:
+  # local_file.pet must be replaced
+-/+ resource "local_file" "pet" {
+content = "We love pets!" directory_permission = "0777"
+~ file_permission
+  filename
+= "0777" -> "0700" # forces replacement
+= "/root/pet.txt"
+=
+      ~ id
+"5f8fb950ac60f7f23ef968097cda0a1fd3c11bdf" -> (known after apply)
+    }
+Plan: 1 to add, 0 to change, 1 to destroy.
+---------------------------------------------------------------------- Note: You didn't specify an "-out" parameter to save this plan, so Terraform
+can't guarantee that exactly these actions will be performed if "terraform apply" is subsequently run.
+
+
+From the output, we can see that the resource will be replaced. The minus plus symbol in the beginning of the resource name in the plan 
+implies that it will be deleted and then recreated the line with the comment that reads, Forces replacement is responsible for the
+deletion and recreation.
+
+$ terraform apply
+# local_file.pet must be replaced -/+ resource "local_file" "pet" {
+        content              = "We love pets!"
+        directory_permission = "0777"
+~ file_permission
+  filename
+= "0777" -> "0700" # forces replacement = "/root/pet.txt"
+=
+Plan: 1 to add, 0 to change, 1 to destroy.
+Do you want to perform these actions?
+Terraform will perform the actions described above. Only 'yes' will be accepted to approve.
+  Enter a value: yes
+local_file.pet: Destroying...
+[id=5f8fb950ac60f7f23ef968097cda0a1fd3c11bdf]
+local_file.pet: Destruction complete after 0s
+local_file.pet: Creating...
+local_file.pet: Creation complete after 0s [id=5f8fb950ac60f7f23ef968097cda0a1fd3c11bdf]
+~ id
+"5f8fb950ac60f7f23ef968097cda0a1fd3c11bdf" -> (known after apply)
+}
+Apply complete! Resources: 1 added, 0 changed, 1 destroyed.
+
+
+$ terraform destroy --> To completely destroy/delete the infrastructure
