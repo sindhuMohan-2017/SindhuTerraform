@@ -45,7 +45,6 @@ The first argument is the filename, to this We assigned the absolute path to the
 
 Now we can also add some content to this file by making use of the content argument, to this we have added "We love pets!"
 
-
 The words filename and content are specific to the local file resource we want to create and they cannot be changed.
 In other words, the resource type of local file expects that we provide the argument or file name and content.
 
@@ -56,145 +55,133 @@ We now have a complete HCL configuration file that we can use to create a file b
 used in HCL. But it is also a mandatory block needed to deploy a resource using TerraForm.
 
 
+asw-ec2.tf example
+-------------------
+resource "aws_instance" "webserver" {
+    ami = "ami-0c2f25c1f66a1ff4d"
+    instance_type = "t2.micro"
+}
 
-Here is an example of a resource file created for provisioning and HWC, easy to instance, the resource
+Here is an example of a resource file created for provisioning  an AWS EC2 instance ,the resource type is "aws_instance" ,And the arguments that we have used here is the ami Id and the instance type.
 
-type is AWG underscore instance we named the resource the observer.
 
-And the arguments that we have used here is the aimy ID.
+aws-s3.tf example
+------------------
+resource "aws_s3_bucket" "data" { 
+bucket = "webserver-bucket-org-2207" 
+acl = "private"
+}
+Here is another example of a resource file used to create an AWS S3 bucket, The resource type in this case is "aws_s3_bucket" and the resource name that we have chosen as data and the arguments that we are provided as the bucket name and the ACL.
 
-And the instance type.
-
-Here is another example of a resource file used to create an IWC S3 bucket.
-
-The resource type in this case is HWC Underscore S3 and a school bucket.
-
-The resource name that we have chosen as data and the arguments that we are provided as the bucket name
-
-and the ACL.
 
 A simple terraformed workflow consists of four steps.
+  -> First, write the configuration file.
+  -> Next, Run the TerraForm init command.
+  -> And after that review the execution plan, using the TerraForm plan command.
+  -> Finally, once we are ready apply the changes using the the Terraform apply command.
 
-First, write the configuration file.
+example local.tf
+----------------
+resource "local_file" "pet" {
+filename = "/root/pets.txt"
+content = "We love pets!"
+}
 
-Next, Randy TerraForm in IT command.
+With the configuration file ready, we can now create the file resource using the terraforme commands as follows.
+  $ terraform init
+This command will check the configuration file and initialize the working directory containing .tf file
 
-And after that review of the execution plan, using the TerraForm plan command.
+One of the first things that this command does is to understand that we are making use of the local provider based on the resource type declared and the resource block.
 
-Finally, once we already apply the changes using the the reform apply command.
+It will then download the plugin to be able to work on the resources declared and .tf file
 
-With the configuration file ready, we can now create the file resource using the terraformed commands
-
-as follows.
-
-First, Randi, to reform any command.
-
-This command will check the configuration file and initialize the working dickory containing the dot
-
-D.F. file.
-
-One of the first things that this man does is to understand that we are making use of the local provider
-
-based on the resource type declared and the resource block.
-
-It will then download the plugin to be able to work on the resources declared and the dot def file.
-
-From the output of this command, we can see that terraform, and it has installed a plugin called Local.
+From the output of this command, we can see that terraform, init has installed a plugin called Local.
 
 Next, we are ready to create the resource.
 
-But before we do that, if you want to see the execution plan that will be carried out by telephone,
-
-we can use the command reform plan.
-
+But before we do that, if you want to see the execution plan that will be carried out by terraform,we can use the command terraform plan.
+  $ terraform plan
 This command will show the actions that will be carried out by TerraForm to create the resource.
 
-Therefore, knows that it has to create resources and this is displayed in the output similar to a deef
+Output :: 
+Refreshing Terraform state in-memory prior to plan...
+The refreshed state will be used to calculate this plan, but will not be persisted to local or remote state storage.
+------------------------------------------------------------------------
+An execution plan has been generated and is shown below. Resource actions are indicated with the following symbols:
++ create
+Terraform will perform the following actions:
+  # local_file.pet will be created
+  + resource "local_file" "pet" {
++ content = "We love pets!" + directory_permission = "0777"
+} Plan:
++ file_permission
++ filename
++ id
+= "0777"
+= "/root/pets.txt"
+= (known after apply)
+1 to add, 0 to change, 0 to destroy. ------------------------------------------------------------------------
+Note: You didn't specify an "-out" parameter to save this plan, so Terraform
+can't guarantee that exactly these actions will be performed if "terraform apply" is subsequently run.
 
-command and get.
 
-The output has a plus symbol next to the local file tab resource called Pet.
+Therefore, knows that it has to create resources and this is displayed in the output similar to diff command in git
 
-This includes all the arguments that be specified in the Daudier file for creating the resource.
-
-But you'll also notice that some default or optional arguments, which we did not specifically declare
-
-in the configuration file.
-
-This also displayed on the screen.
+The output has a plus symbol next to the local file tab resource called Pet.This includes all the arguments that be specified in the .tf file for 
+creating the resource. But you'll also notice that some default or optional arguments, which we did not specifically declare in the configuration file, this also displayed on the screen.
 
 The plus symbol implies that the resource will be created.
+Now, remember, this step will not create the infrastructure resource yet. This information is provided for the user to review and ensure that all the actions to be performed in this execution plan as desired.
 
-Now, remember, this step will not create the infrastructure resource yet.
-
-This information is provided for the user to review and ensure that all the actions to be performed
-
-in this execution plan as desired.
-
-After the review, we can create the resource.
-
-And to do this, we will make use of the terraform apply command.
-
-This command will displayed the execution plan once again, and it will then ask the user to confirm
-
-by typing, yes, to proceed.
-
-Once we confirm, it will proceed with the creation of the resource, which in this case is a file.
+After the review, we can create the resource. And to do this, we will make use of the terraform apply command.
+  $ terrform apply
+  
+This command will displayed the execution plan once again, and it will then ask the user to confirm by typing, yes, to proceed. Once we confirm, it will proceed with the creation of the resource, which in this case is a file.
 
 We can validate that the file was indeed created by running the cat command to view the file.
 
-We can also run the terraformed Shukman within the configuration daltry to see the details of the resource
+output ::
 
-that we just created.
+An execution plan has been generated and is shown below. Resource actions are indicated with the following symbols:
++ create
+Terraform will perform the following actions:
+  # local_file.pet will be created
+  + resource "local_file" "pet" {
+} Plan:
++ file_permission
++ filename
++ id
+1 to add, 0 to change,
+= "0777"
+= "/root/pets.txt"
+= (known after apply)
+0 to destroy.
++ content = "We love pets!" + directory_permission = "0777"
+Do you want to perform these actions?
+Terraform will perform the actions described above. Only 'yes' will be accepted to approve.
+Enter a value: yes
+local_file.new_file: Creating...
+local_file.new_file: Creation complete after 0s [id=521c5c732c78cb42cc9513ecc7c0638c4a115b55]
+Apply complete! Resources: 1 added, 0 changed, 0 destroyed.
 
-This command, inspect this file and displays the resource details.
 
-We will learn more about this command and the state in a little lecture.
+$ cat /root/pets.txt  --> o/p :: We love pets!
 
-So we have now created our first resource using TerraForm.
+We can also run the terraform show command within the configuration directory  to see the details of the resource that we just created.
+$ terraform show
+# local_file.pet:
+resource "local_file" “pet" {
+content = "We love pets!" directory_permission = "0777" file_permission ="0777" file_name ="/root/pets.txt"
+id = "cba595b7d9f94ba1107a46f3f731912d95fb3d2c"
+}
 
-Before we end the section, let us go back and look at the configuration blocks and local data file.
+This command, inspect state file and displays the resource details.
 
-In this example, we use the resource type of local file and learned that the key word before the underscore
 
-here is the provider name called local.
 
-But how do we know that?
+Earlier, we mentioned that terraforme supports over 100 providers, including the local provider we have used in this example. Other common examples are aws to deploy resources in Amazon, AWS Cloud, Azure, GCB, Ali Cloud,etc..
 
-How do we know Watrous or Stipe's other than local file are available under the provider call local?
+Each of these providers have a unique list of resources that can be created on that specific platform.And each resource can have a number of required are optional arguments that are needed to create that resource.And we can create as many resources of ease type as needed.
 
-And finally, how do we know what arguments are expected by the local file resource?
 
-Earlier, we mentioned that terraformed supports or 100 providers, including the local provider we
 
-have used in this example.
-
-Other common examples are ways to deploy resources in Amazon, IWC Cloud, Azure, GCB, Ali Cloud,
-
-etc..
-
-Each of these providers have a unique list of resources that can be created on that specific platform.
-
-And each resource can have a number of required are optional arguments that are needed to create that
-
-resource.
-
-And we can create as many resources of easthope as needed.
-
-It is impossible to remember all of these options.
-
-And of course, we don't have to do that.
-
-Reform documentation is extremely comprehensive, and it is the single source of truth that we need
-
-to follow.
-
-If you look at the local provider within the documentation, we can see that it only has one type of
-
-resource called local file.
-
-Under the argument section, we can see that there are several arguments that the resource block accepts,
-
-all of which only one is mandatory.
-
-The finally the rest of the arguments are optional.
