@@ -52,3 +52,11 @@ Provide plugins, especially the official ones, are constantly updated with newer
 in bug fixes and these can introduce breaking changes to your code.
 
 We can lock down our configuration files to make use of a specific provider version as well.
+
+We can have multiple .tf configuration files which are having the same resource type (local_file) then we can have only 1 provider plugin is initialized
+in the  configuuration directory.
+
+Main.tf --> Main configuration file containing resource definition
+variables.tf --> Contains variable declarations
+output.tf --> contains output from resources
+provider.tf --> contains provider definition
