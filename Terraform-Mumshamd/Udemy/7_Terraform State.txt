@@ -1,0 +1,82 @@
+terraform.tfstate --> this file will be created whewn we first run the terraform apply command
+
+The state file is a JSON data structure that maps the real world infrastructure resources to the resource definition in the configuration files.
+
+If we inspect the contents of the state file, we can see that it has the complete record of the infrastructure created by Terraform.
+
+It contains every little detail pertaining to the infrastructure that was created by TerraForm, and it uses it as a single source of truth 
+when using command suggestion on plan and apply.
+
+If you make a change the configuration file now and rerun the terraform plan or apply command , terraform by default refreshes the state again and compares it against the configuration file.
+
+TerraForm used a state file to map the resource configuration to the real world infrastructure.This mapping allows TerraForm to create execution plans when a drift, as identified between the resource configuration files and the state.
+
+Hence a state file can be considered to be a blueprint of all the resources that Terraform manages out there in the real world.
+
+When TerraForm creates a resource, it records its identity in the state. 
+
+when each resource is created and managed by TerraForm, it would have a unique ID which is used to identify resources in the real world.
+
+Besides the mapping between resources and the configuration and the real world, the state file also tracks metadata details such as resource dependencies.
+
+Terraform creates 2 types of dependencies - Implict & Explicit
+
+Initial configuration :: Resource A, Resource B, Resource C ;; Resource B has implicit dependency with Resource A( i.e output of Resource B is referenced in Resource A)
+So when we run terraform apply command, Resource B, Resource C are created in parallel and Resource A is created after the completion of Resource B
+
+Now if we update the configuration file - deleted Resource A, Resource B, them how can terraform identify in which order it need to execute??
+So it basically uses terraform.tfstate file since Terraform relies on the state and the fact that it tracks metadata within the state file.Thus it deleted Resource A first and then Resosurce B
+
+
+
+One other benefit of using state is performance.
+
+When dealing with the handful number of resources, it may be feasible for TerraForm to reconcile state with the real world infrastructure after every single TerraForm command such as plan or apply.
+
+But in the real world, TerraForm would manage hundreds and thousands of such resources and when these resources are distributed to multiple providers, and especially those that are on the cloud, it is not feasible for TerraForm to reconcile state for every TerraForm operation.
+
+This is because it would take several seconds to several minutes in some cases for TerraForm to fetch details about every single resource from all the providers which are configured.
+
+For larger infrastructures, this may prove to be too slow in such cases that Terraform state can be used as their record of truth without having to reconcile.This would improve the performance significantly.
+
+Terraform stores a cache of attribute values for all the resources in the state, and we can specifically make the Terraform to refer to the state file alone while running commands and bypass having to refresh state every time.
+
+To do this, we can make use of the flag --refersh = false
+
+terraform apply --resfresh = true
+
+
+The final benefit of terraform state  that we are going to look at is collaboration.
+
+The TerraForm State file is stored n the same configuration directory in a file called terraform.tfState.
+In a normal scenario, this means that the state file resides in the folder or a directory in the end users laptop.
+
+This is all right when starting off Terraform learning and implementing small projects individually. However, this is far from ideal when working as a team.
+
+Every user in the team should always have the latest data before running TerraForm and make sure that nobody else wants to run TerraForm at the same time.
+Failure to do so can result in unpredictable errors as a consequence.
+
+In such a scenario, it is highly recommended to save the  terraform state file in a remote data store rather than to rely on a local copy.This allows the state to be shared between all members of the team securely.
+
+Examples of remote state stores are Amazon Web Services, S3 Service, Hashi Cops Console and TerraForm Cloud.
+
+Terraform state considerations
+==============================
+
+State is a non optional feature in TerraForm. However, there are a few considerations.
+
+First one is that the state file contains sensitive information within it, it contains every little detail about our infrastructure.
+
+The state is stored in plain text JSON files. And as we know, this information can be classified as sensitive information.
+
+And as a result, we need to make sure that the state file is always stored in a secure storage.
+
+So we have two kinds of files in our configuration directory, terraform.tfstate that stores state of the infrastructure and Terrafrom configuration files that we use to provision and manage infrastructure.
+
+When working as a team, it is considered a best practice to store  terraform configuration files in distributed version control systems such as GitHub ,gitlab or Bitbucket.
+
+However, owing to the sensitive nature of the state file, it is not recommended to store them in git repositories. Instead, stored the state and remote backend systems such as AWS, S3, Google Cloud Storage, Azure Storage, TerraForm Cloud, etc.
+
+TerraForm State is a Json data structure that is meant for internal use within TerraForm.
+
+We should never manually attempt to edit the state files ourselves. However, there would be situations where we may want to make changes to the state file, and in such cases, we should rely on TerraForm State commands.
