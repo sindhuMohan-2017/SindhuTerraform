@@ -1,0 +1,345 @@
+Immutable vs Non Immutable Infrastructure
+-----------------------------------------
+Immutable” is the state of being unchangeable. It's an antonym to mutable, which means that on this end, the infrastructure cannot be modified 
+once deployed. When changes are necessary, you need to deploy afresh, add infrastructure, and decommission old infrastructure
+
+More detail : https://www.hashicorp.com/resources/what-is-mutable-vs-immutable-infrastructure
+
+Life Cycle Rules
+-----------------
+Terraform --> follows Immutable infrastructure
+if there is update in resource --> delete the resource first and then create it again
+
+But what if you want the resource to be created first before the old one is deleted or to ignore deletion completely.How do we do that?
+  This can be done by making use of Life-Cycle rules in our resource block.
+ **  create_before_destroy --> First create the resource & then delete it 
+  
+main.tf
+resource "local_file" "pet" {
+   filename = "/root/pets.txt"
+   content = "We love pets!"
+   file_permission = "0700"
+   
+   lifecycle {
+    create_before_destroy = true
+   }
+}
+
+Output
+$ terraform apply
+# local_file.pet must be replaced -/+ resource "local_file" "pet" {
+        content              = "We love pets!"
+        directory_permission = "0777"
+      ~ file_permission
+    }
+Plan: 1 to add, 0 to change, 1 to destroy.
+...
+local_file.pet: Creating...
+local_file.pet: Creation complete after 0s [id=5f8fb950ac60f7f23ef968097cda0a1fd3c11bdf]
+local_file.pet: Destroying...
+[id=5f8fb950ac60f7f23ef968097cda0a1fd3c11bdf]
+local_file.pet: Destruction complete after 0s
+Apply complete! Resources: 1 added, 0 changed, 1 destroyed.
+
+
+** prevent_destroy = true --> deletion og the resource won't happen & it throws error.
+
+Terraform will reject any changes that will result in the resource getting destroyed and display an error message like this.
+This is especially useful to prevent your sources from getting accidentally deleted.
+This rule will only prevent resource deletion from changes that are made to the configuration and a subsequent terraform apply.
+
+
+Main.tf
+resource "local_file" "pet" {
+   filename = "/root/pets.txt"
+   content = "We love pets!"
+   file_permission = "0700"
+   
+   lifecycle {
+      prevent_destroy = true
+      }
+}
+  
+ Output ::
+ $ terraform apply
+local_file.my-pet: Refreshing state... [id=cba595b7d9f94ba1107a46f3f731912d95fb3d2c]
+Error: Instance cannot be destroyed
+  on main.tf line 1:
+   1: resource "local_file" "my-pet" {
+Resource local_file.my-pet has lifecycle.prevent_destroy set, but the plan calls
+for this resource to be destroyed. To avoid this error and continue with the plan, either disable lifecycle.prevent_destroy or 
+reduce the scope of the plan using the -target flag.
+
+  ** ignore_changes -->This Life-Cycle rule, when applied, will prevent a resource from being updated based on a list of 
+  attributes that be defined within the lifecycle block.
+  
+  Main.tf
+  resource "aws_instance" "webserver" {
+      ami           = "ami-0edab43b6fa892279"
+      instance_type = "t2.micro"
+      tags = {
+          Name = “ProjectA-Webserver" 
+          }
+      lifecycle {
+          ignore_changes = [
+                           tags
+                           ] }
+}
+
+Output :
+$ terraform apply
+aws_instance.webserver: Refreshing state... [id=i- 05cd83b221911acd5]
+Apply complete! Resources: 0 added, 0 changed, 0 destroyed.
+
+
+Order     Option
+1         create_before_destroy             Create the resource first and then destroy older
+2         prevent_destroy                   Prevents destroy of a resource
+3         ignore_changes                    Ignore Changes to Resource Attributes (specific/all)
+
+
+Data Sources
+============
+Data sources allow terraform to read attributes from resources are provision outside Terraform control.
+
+https://developer.hashicorp.com/terraform/language/data-sources
+
+Main.tf
+resource "local_file" "pet" {
+    filename = "/root/pets.txt"
+    content =data.local_file.dog.content
+}
+data "local_file" "dog" { 
+    filename = "/root/dog.txt"
+}
+
+dog.txt
+$ cat /root/dog.txt
+Dogs are awesome!
+
+Resource                                          Data Source
+Keyword: resource                                 Keyword: data
+Creates, Updates, Destroys Infrastructure         Only Reads Infrastructure
+Also called Managed Resources                     Also called Data Resources
+
+
+Meta Arguements
+===============
+Meta arguments can be used within any resource block to change the behavior of resources.
+
+depends on --> for defining explicit dependency between resources 
+lifecycle rules  -->  which define how the resources should be created, updated and destroyed within TerraForm.
+
+https://medium.com/@neonforge/meta-arguments-in-terraform-unlocking-the-full-potential-of-infrastructure-as-code-de125c85c547
+
+Meta arguments in Terraform allow you to customize the behavior of modules and resources in your code. Some common Meta arguments include:
+
+count: This argument allows you to create multiple instances of a module or resource. For example, if you wanted to create three instances of a 
+module called "web-server", you could use the following code:
+module "web-server" {
+  source = "./modules/web-server"
+  count  = 3
+}
+
+
+depends_on: This argument allows you to specify dependencies between resources in your Terraform code. For example, if you wanted to create a 
+database and a web server, and make sure the web server is created after the database, you could use the following code:
+resource "aws_db_instance" "database" {
+  # ...
+}
+
+resource "aws_instance" "web-server" {
+  # ...
+  depends_on = [aws_db_instance.database]
+}
+
+
+provider: This argument allows you to specify which provider a resource belongs to. This is useful when you are using multiple providers 
+in your Terraform code, or when you want to use a specific provider for a particular resource. For example, if you wanted to use the AWS provider 
+for a resource called "aws_instance", you could use the following code:
+provider "aws" {
+  # ...
+}
+
+resource "aws_instance" "web-server" {
+  provider = aws
+  # ...
+}
+
+
+lifecycle: This argument allows you to define custom behavior for certain lifecycle events, such as when a resource is created, destroyed, or updated. 
+For example, if you wanted to prevent a resource from being destroyed, you could use the following code:
+resource "aws_instance" "web-server" {
+  # ...
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
+
+provisioner: This argument allows you to run custom scripts or programs on a resource after it has been created. This is useful for tasks 
+as installing software on a virtual machine or configuring a database. For example, if you wanted to run a script called "configure-server.sh" 
+on an AWS instance after it has been created, you could use the following code:
+resource "aws_instance" "web-server" {
+  # ...
+  provisioner "remote-exec" {
+    inline = [
+      "chmod +x configure-server.sh",
+      "./configure-server.sh"
+    ]
+  }
+}
+
+
+
+output: This argument allows you to define custom output values for a module or resource. These output values can be accessed from other modules or 
+resources, or displayed to the user when running the terraform apply command. For example, if you wanted to output the public IP address of 
+an AWS instance, you could use the following code:
+resource "aws_instance" "web-server" {
+  # ...
+}
+
+output "public_ip" {
+  value = aws_instance.web-server.public_ip
+
+
+
+connection: This argument allows you to specify connection details for a resource that requires access to other resources or external services. 
+For example, if you wanted to specify the credentials for an AWS S3 bucket, you could use the following code:
+resource "aws_s3_bucket" "my-bucket" {
+  # ...
+  connection {
+    access_key = var.access_key
+    secret_key = var.secret_key
+    region     = var.region
+  }
+}
+
+
+variable: This argument allows you to define custom input variables for a module. These variables can be passed to the module when it is called, allowing you to customize the behavior of the module without modifying its code. For example, if you wanted to create a module that creates a virtual machine, and you want to specify the instance type and the name of the virtual machine, you could use the following code:
+module "vm" {
+  source = "./modules/vm"
+  # ...
+  instance_type = var.instance_type
+  name          = var.name
+}
+
+
+locals: This argument allows you to define local values and variables within a module or resource. These values and variables can be used within the module or resource, and are not visible to other modules or resources. This can be useful for organizing complex Terraform code and avoiding naming conflicts. For example, if you wanted to define a local value for the name of an AWS S3 bucket, you could use the following code:
+resource "aws_s3_bucket" "my-bucket" {
+  # ...
+  locals {
+    bucket_name = "my-bucket"
+  }
+}
+
+
+timeouts: This argument allows you to specify timeouts for certain actions, such as creating or destroying a resource. This can be useful for ensuring that your Terraform code does not get stuck waiting for slow or unresponsive resources. For example, if you wanted to set a timeout of 10 minutes for the creation of an AWS S3 bucket, you could use the following code:
+resource "aws_s3_bucket" "my-bucket" {
+  # ...
+  timeouts {
+    create = "10m"
+  }
+}
+
+
+source: This argument allows you to specify the source of a module, which is the location of the module's code. This can be a local path, a remote Git repository, or a public Terraform registry. For example, if you wanted to use a module from a Git repository, you could use the following code:
+module "vm" {
+  source = "git::https://github.com/user/repo.git//modules/vm"
+  # ...
+}
+
+
+condition: This argument allows you to specify a condition that must be met in order for a resource to be created. This can be useful for implementing complex logic or branching in your Terraform code. For example, if you wanted to create an AWS S3 bucket only if a certain variable is set, you could use the following code:
+resource "aws_s3_bucket" "my-bucket" {
+  # ...
+  condition = var.create_bucket
+}
+
+
+data: This argument allows you to specify a data source, which is a resource that provides information to your Terraform code. This information can be used by other resources or modules in your code. For example, if you wanted to use the information from an AWS EC2 instance in another resource, you could use the following code:
+data "aws_instance" "web-server" {
+  # ...
+}
+
+resource "aws_security_group" "sg" {
+  # ...
+  vpc_id = data.aws_instance.web-server.vpc_id
+}
+
+
+
+for_each: This argument allows you to create multiple instances of a resource or module using a list or map of values. This can be useful for creating resources based on dynamic input data. For example, if you wanted to create multiple AWS S3 buckets using a list of names, you could use the following code:
+resource "aws_s3_bucket" "my-bucket" {
+  for_each = var.bucket_names
+  # ...
+  bucket_name = each.value
+}
+
+
+
+on_failure: This argument allows you to specify a custom behavior for when a resource fails to be created or destroyed. This can be useful for handling errors or cleaning up after failed operations. For example, if you wanted to send an email notification when a resource fails, you could use the following code:
+resource "aws_instance" "web-server" {
+  # ...
+  on_failure {
+    # Use a local value to specify the email address
+    local.email_address = var.email_address
+    trigger = "email"
+  }
+}
+
+
+
+ignore_changes: This argument allows you to specify which attributes of a resource should not be managed by Terraform. This can be useful for avoiding conflicts or unwanted changes to a resource. For example, if you wanted to prevent Terraform from managing the tags of an AWS S3 bucket, you could use the following code
+resource "aws_s3_bucket" "my-bucket" {
+  # ...
+  ignore_changes = [tags]
+}
+
+
+
+create_before_destroy: This argument allows you to specify that a new resource should be created before an existing resource is destroyed. This can be useful for implementing blue/green deployments or zero-downtime updates. For example, if you wanted to create a new AWS EC2 instance before destroying the old one, you could use the following code:
+resource "aws_instance" "web-server" {
+  # ...
+  create_before_destroy = true
+}
+
+
+validate: This argument allows you to specify custom validation rules for input variables. This can be useful for ensuring that input data is correct and consistent. For example, if you wanted to ensure that a variable contains a valid email address, you could use the following code:
+variable "email_address" {
+  type        = string
+  description = "The email address to send notifications to"
+  validate {
+    # Use a regular expression to match the email address
+    regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
+  }
+}
+
+
+
+metadata: This argument allows you to specify metadata for a module or resource. This can be useful for providing additional information or documentation about the module or resource. For example, if you wanted to add a description and a reference URL to an AWS S3 bucket, you could use the following code:
+resource "aws_s3_bucket" "my-bucket" {
+  # ...
+  metadata {
+    description = "This is a sample S3 bucket"
+    url         = "https://docs.aws.amazon.com/s3/buckets"
+  }
+}
+
+
+
+destroy: This argument allows you to specify whether a resource should be destroyed when running the terraform destroy command. This can be useful for avoiding accidental destruction of resources or for implementing conditional destruction. For example, if you wanted to prevent the destruction of an AWS S3 bucket unless a certain variable is set, you could use the following code:
+resource "aws_s3_bucket" "my-bucket" {
+  # ...
+  destroy = var.destroy_bucket
+}
+
+override: This argument allows you to override the default values of a module or resource. This can be useful for customizing the behavior of a module without modifying its code. For example, if you wanted to override the default value of an input variable for an AWS S3 bucket, you could use the following code:
+module "s3" {
+  source = "./modules/s3"
+  # ...
+  bucket_name = "my-bucket"
+  override {
+    bucket_name = "my-custom-bucket"
+  }
+}
