@@ -1,0 +1,62 @@
+Terraform validate
+------------------
+The terraform validate command validates the configuration files in a directory, referring only to the configuration and not accessing any remote services such as remote state, provider APIs, etc.
+
+Validate runs checks that verify whether a configuration is syntactically valid and internally consistent, regardless of any provided variables or existing state. It is thus primarily useful for general verification of reusable modules, including correctness of attribute names and value types.
+
+Terraform fmt
+-------------
+The terraform fmt command is used to rewrite Terraform configuration files to a canonical format and style. 
+
+This command scans the configuration files in the current working directory and formats the code into a canonical format.
+
+This is a useful command to improve the readability of the TerraForm configuration file.
+
+When we run this command, the files that are changed in the configuration directory is displayed on the screen.
+
+Terraform show
+---------------
+The terraform show command prints out the current state of the infrastructure, as seen by TerraForm.
+
+terraform show -json --> To display the content in the json format
+
+Terraform providers
+-------------------
+To see a list of all providers used in the configuration directory, Use terraform providers command
+
+Also mirror subcommand -->  to copy provider plug plugins needed for the current configuration to another directory
+terraform providers mirror <<new loc>>(/root/terraform/new-loc-file)
+
+Terraform output
+----------------
+To print all the output variables in the configuration directory
+
+$ terraform output pet-name
+To print the value of a specific variable by appending the name of the variable to the end
+
+Terraform refresh
+-----------------
+To sync terraform with the real world infrastructure
+
+For example, if there are any changes made to a resource created by TerraForm outside its control, such as a manual update, TerraForm Refresh Command will pick it up and update the state file.
+
+This reconciliation is useful to determine what action to take during the next apply.
+
+This command will not modify any infrastructure resource, but it will modify the state file.
+
+Terraform Refresh is also run automatically by command, such as the terraform plan and terraform apply and this was done prior to terraform generating an execution plan.
+
+This can, however, be bypassed by using the -refresh = false option with the commands.
+
+Terraform graph
+---------------
+The TerraForm Graph Command is used to create a visual representation of the dependencies in a terraform configuration or an execution plan.
+
+The output generated is hard to comprehend as it is, but it is a graph generated in a format called DOT.
+
+To make more sense of this graph, we can pass it through a graph visualization software such as Graphviz and we can install it in Ubuntu using APT like this.
+
+Once installed, we can parse the output of the data from graph to the document, which we installed using the graphics package and generate a graphic representational way
+$ apt update
+$ apt install graphviz -y
+$ terraform graph | dot -Tsvg > graph.svg
