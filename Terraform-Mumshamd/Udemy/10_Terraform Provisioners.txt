@@ -1,0 +1,177 @@
+Terraform Provisioners
+======================
+Provisioners provide a way for us to carry out tasks such as running commands or scripts on remote resources or locally on the machine
+where terraform is installed.
+
+https://medium.com/@mitesh_shamra/terraform-provisioner-fa0911d65ce9
+
+Terraform not only helps us in infrastructure creation and management but also in provisioning them during resource creation or deletion. 
+It uses a feature named provisioner for the same. Provisioners are used for executing scripts or shell commands on a local or remote machine 
+as part of resource creation/deletion. They are similar to “EC2 instance user data” scripts that only run once on the creation and if it fails 
+terraform marks it tainted. 
+A tainted resource is one which is planned for destruction on next terraform apply. Terraform doesn’t run these scripts multiple times. 
+If we want more flexibility then we must use a configuration management tool like ansible to properly provision the instance.
+
+There are many provisioners available. They help in:
+  local script execution on the machine from where we are running terraform
+  remote script execution on resource
+  file or directory copy on the remote resource
+  configure and run configuration management tools on the remote resource.
+
+local-exec
+----------
+local-exec provisioner helps run a script on instance where we are running our terraform code, not on the resource we are creating. For example, 
+if we want to write EC2 instance IP address to a file, then we can use below local-exec provisioner with our EC2 resource and save it locally in a file.
+
+resource "aws_instance" "testInstance" {
+  ami           = "${var.instance_ami}"
+  instance_type = "${var.instance_type}"
+  subnet_id = "${aws_subnet.subnet_public.id}"
+  vpc_security_group_ids = ["${aws_security_group.sg_22.id}"]
+  key_name = "${aws_key_pair.ec2key.key_name}"
+tags {
+        "Environment" = "${var.environment_tag}"
+  }
+  provisioner "local-exec" {
+    command = "echo ${aws_instance.testInstance.public_ip} >> public_ip.txt"
+  }
+}
+
+
+remote-exec 
+-----------
+This provisioner helps invoke a script on the remote resource once it is created. We can provide a list of command strings which are executed 
+in the order they are provided.
+We can also provide scripts with a local path which is copied remotely and then executed on the remote resource. 
+File provisioner is used to copy files or directories to a remote resource. 
+We can’t provide any arguments to script in remote-exec provisioner. We can achieve this by copying script from file provisioner and then execute 
+a script using a list of commands.
+
+Provisioner which execute commands on a resource (like running a script or copying file)needs to connect to the resource which can be done through 
+SSH. We can define connection method per resource or per provisioner if we want them to connect using different SSH parameters.
+
+There is a special resource named “null_resource” which allow us to configure provisioners which are not directly associated with any resource. 
+It behaves like any other resource which needs connection and provisioner details. For this resource, we need to define triggers which used 
+to trigger a rerun for its set of provisioners.
+
+Provisioner in action
+---------------------
+Let’s use our existing example of creating EC2 instance inside VPC and extend it to setup Nginx using provisioner and access it from port 80. 
+We need to open port 80 using a security group and set up Nginx using remote-exec provisioner.
+
+resource "aws_security_group" "sg_22_80" {
+  name = "sg_22"
+  vpc_id = "${aws_vpc.vpc.id}"
+  ingress {
+      from_port   = 22
+      to_port     = 22
+      protocol    = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+  }
+  ingress {
+      from_port   = 80
+      to_port     = 80
+      protocol    = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+  }
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  tags {
+    "Environment" = "${var.environment_tag}"
+  }
+}
+Updated our security group with port 22 and port 80 open. Port 22 is used to SSH by terraform remote-exec provisioner to setup Nginx and Port 80 is 
+used by us when making HTTP call from our browser. Once we are ready with our setup of infrastructure, let’s setup remote-exec provisioner with 
+a connection.
+
+resource "aws_instance" "testInstance" {
+  ami           = "${var.instance_ami}"
+  instance_type = "${var.instance_type}"
+  subnet_id = "${aws_subnet.subnet_public.id}"
+  vpc_security_group_ids = ["${aws_security_group.sg_22_80.id}"]
+  key_name = "${aws_key_pair.ec2key.key_name}"
+  tags {
+        "Environment" = "${var.environment_tag}"
+    }
+  provisioner "remote-exec" {
+    inline = [
+      "sudo amazon-linux-extras enable nginx1.12",
+      "sudo yum -y install nginx",
+      "sudo systemctl start nginx",
+    ]
+  }
+  connection {
+    type     = "ssh"
+    user     = "ec2-user"
+    password = ""
+    private_key = "${file("~/.ssh/id_rsa")}"
+  }
+}
+A connection is used to create an SSH connection with user “ec2-user” and ssh private key from a specified path to run remote-exec inline commands.
+As we are using Amazon Linux 2, so we need to enable nginx using “amazon-linux-extras”. Once this is done, we are going to install nginx 
+and then start it. After running our terraform code, we should have nginx up and running on EC2 instance. When we try to hit public IP of 
+our EC2 instance from the browser, we are able to get a response from nginx.
+
+
+The complete code can be found in this git repository: https://github.com/MiteshSharma/TerraformProvisioner
+
+
+Terraform Taint & Untaint
+=========================
+There would be cases when a resource creation failss when we run a terraform apply. When this happens and a resource creation failed for 
+any reason terraform marks the resource as tainted.
+And this can be seen when we run the terraform plan command again.
+When the resource is tainted, and as a result, terraform will attempt to recreate it during the subsequent apply.
+Now, there would be cases when we want to force a particular resource to be recreated. In this scenario we can use terraform taint command.
+
+  $ terraform taint aws_instance.webserver
+Resource instance aws_instance.webserver has been marked as tainted.
+  
+  $ terraform plan
+Refreshing Terraform state in-memory prior to plan...
+The refreshed state will be used to calculate this plan, but will not be persisted to local or remote state storage.
+aws_instance.webserver: Refreshing state... [id=i-0fd3946f5b3ab8af8]
+------------------------------------------------------------------------
+An execution plan has been generated and is shown below. Resource actions are indicated with the following symbols: -/+ destroy 
+and then create replacement
+Terraform will perform the following actions:
+# aws_instance.webserver is tainted, so must be replaced -/+ resource "aws_instance" "webserver" {
+
+
+** To undo a taint that was applied for a specific resource, use the terrafrom untaint command like this.
+$ terraform untaint aws_instance.webserver
+Resource instance aws_instance.webserver has been successfully untainted.
+The resource won't be created in the next subsequent terraaform plan command.
+
+
+Debugging
+=========
+When things go wrong in from the obvious place, to look for the cause is in the logs. Although Terraform apply often provides a good indication 
+of what may have caused an error during the provisioning.There may be cases where we need to look a little bit deeper.
+
+To do this, we can make use of environmental variable called "TF_log" and set it to one of the log level values.
+# export TF_LOG=<log_level>
+e.g :: export TF_LOG = TRACE
+Log Levels
+INFO, WARNING, ERROR, DEBUG, TRACE(most verbose logging level of all)
+
+Also we can store the log data to a file
+ export TF_LOG_PATH=/tmp/terraform.log
+ 
+To disable logging completely unset the environmental variables like this.
+$ unset TF_LOG_PATH
+
+
+Terraform Import
+=================
+we will learn how to import existing infrastructure into the TerraForm configuration using TerraForm Import Command.
+Terraform can import existing infrastructure resources. This functionality lets you bring existing resources under Terraform management.
+Terraform import can only import resources into the state. Importing does not generate configuration.
+
+Before you run terraform import you must manually write a resource configuration block for the resource. The resource block describes where Terraform 
+should map the imported object.
+
